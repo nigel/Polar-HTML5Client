@@ -106,7 +106,7 @@
 		
 		websocket.onopen = function(ev) { // connection is open 
 			$('#chatframe').append("<div class=\"system_msg\">Connected!</div>"); //notify user
-			send({"join": username});
+			send({"type": "join", name: username, avi: picture, message: "Joined"});
 		}
 
 		$('#send-btn').click(function(){ //use clicks message send button	
@@ -124,7 +124,8 @@
 			var msg = {
 			message: mymessage,
 			name: username,
-			avi : picture
+			avi : picture,
+			type: "message"
 			};
 			//convert and send data to server
 			websocket.send(JSON.stringify(msg));
@@ -134,12 +135,23 @@
 		// TODO: Change all these things to fit our chat service
 		websocket.onmessage = function(ev) {
 			var msg = JSON.parse(ev.data); //PHP sends Json data
-			//var type = msg.type; //message type
+			var type = msg.type; //message type
 			var umsg = msg.message; //message text
 			var uname = msg.name; //user name
 			var upic = msg.avi; //color
 
-			$('#chatframe').append('<div class="message"><img src="'+upic+'" class=" message-avatar"><div class=" message-content-nickname-wrapper"><div class="message-name">'+uname+'</div><div class="message-content">'+umsg+'</div></div></div>');
+			if (type == "message") {
+				$('#chatframe').append('<div class="message"><img src="'+upic+'" class=" message-avatar"><div class=" message-content-nickname-wrapper"><div class="message-name">'+uname+'</div><div class="message-content">'+umsg+'</div></div></div>');
+			}
+
+			if (type == "join") {
+				$('#chatframe').append('<div class="message">'+uname+' has joined the chat</div>');
+			}
+
+			if (type == "system") {
+				$('#chatframe').append('<div class="message"><img src="http://rs1218.pbsrc.com/albums/dd415/thomas1234567899/24ll9i9-1.png~c200" class=" message-avatar"><div class=" message-content-nickname-wrapper"><div class="message-name">System</div><div class="message-content">'+umsg+'</div></div></div>');
+			}
+			
 			
 			$('textarea').val(''); //reset text
 			
