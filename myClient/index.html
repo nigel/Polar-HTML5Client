@@ -134,34 +134,12 @@
 		// TODO: Change all these things to fit our chat service
 		websocket.onmessage = function(ev) {
 			var msg = JSON.parse(ev.data); //PHP sends Json data
-			var type = msg.type; //message type
+			//var type = msg.type; //message type
 			var umsg = msg.message; //message text
 			var uname = msg.name; //user name
 			var upic = msg.avi; //color
 
-			if (type == 'usermsg') {
-				$('#chatframe').append('<div class="message"><img src="'+upic+'" class=" message-avatar"><div class=" message-content-nickname-wrapper"><div class="message-name">'+uname+'</div><div class="message-content">'+umsg+'</div></div></div>');
-				//$('#chatframe').append("<div><span class=\"user_name\" style=\"color:#"+ucolor+"\">"+uname+"</span> : <span class=\"user_message\">"+umsg+"</span></div>");
-			}
-			if (type == 'system') {
-				$('#chatframe').append("<div class=\"system_msg\">"+umsg+"</div>");
-			}
-
-			if (type == 'userInit') {
-				usersClear();
-				var names = umsg.split(",");
-				for (var i = 0; i < names.length - 1; i++) {
-					userAdd(names[i]);
-				}
-			}
-
-			if (type == 'userJoin') {
-				userAdd(umsg);
-			}
-
-			if (type == 'userLeft') {
-				userRemove(umsg);
-			}
+			$('#chatframe').append('<div class="message"><img src="'+upic+'" class=" message-avatar"><div class=" message-content-nickname-wrapper"><div class="message-name">'+uname+'</div><div class="message-content">'+umsg+'</div></div></div>');
 			
 			$('textarea').val(''); //reset text
 			
