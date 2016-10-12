@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>diChat</title>
+	<style>
+
+		.message {
+			padding: 6px 3px;
+		}
+		.message .message-content {
+			font-size: 15px;
+			margin: 2px 0 4px 0;
+			word-wrap: break-word;
+			white-space: pre-wrap;
+
+			overflow: hidden;
+		}
+		.message .message-avatar {
+			float: left;
+			width: 35px;
+			height: 35px;
+			margin-right: 8px;
+
+
+			border-radius: 20%;
+		}
+
+		.message .message-name {
+			font-size: 12px;
+			font-weight: bold;
+			white-space: nowrap;
+			min-height: 12px;
+			width: auto;
+
+		}
+
+		.message .message-content-nickname-wrapper {
+			margin-left: auto;
+		}
+
+		.chatbox {
+			position: absolute; left: 186.5px; top: 0px; width: 70%; height: 478px; display: block;
+			background-color: #f7f7f7;
+			border: 2px solid black;
+		}
+		.textbox {
+			position: absolute; left: 0px; bottom: -77px; width: 70%; display: block;
+			height: 15%;
+		}
+		.userlist {
+			position: absolute; right: 0px; top: 0px; width: 25%; height: 478px; display: block;
+			background-color: #f0f;
+		}
+
+		.chatbox .chatframe {
+			overflow: auto;
+			height: 478px;
+		}
+
+	</style>
+
+	<script src="jquery-3.1.1.js"></script>
+
+
+	<script language="javascript" type="text/javascript">  
+	$(document).ready(function(){
+		var username = prompt("Please enter your name", "name");
+		var picture = prompt("Please enter your profile pic", "profile.png");
+		//create a new WebSocket object.
+		var wsUri = "ws://localhost:1337/"; 	
+		websocket = new WebSocket(wsUri); 
+
+		var onlineUsers = []
+		function userAdd(nick) {
+			var user = document.createElement('li')
+			user.setAttribute("data-name", nick)
+			user.textContent = nick
+			$('#userlist').append(user)
+			onlineUsers.push(nick)
+		}
+
+		function FindByAttributeValue(attribute, value)    {
+		  var All = document.getElementsByTagName('*');
+		  for (var i = 0; i < All.length; i++)       {
+		    if (All[i].getAttribute(attribute) == value) { return All[i]; }
+		  }
+		}
+
+		function userRemove(nick) {
+			var index = onlineUsers.indexOf(nick);
+			if (index > -1) {
+				onlineUsers.splice(index, 1);
+			}
+			if (nick) {
+				$('ul[data-name="'+nick+'"]').remove();
+			}
+		}
+
+		function usersClear() {
+			var users = $('#userlist')
+			while (users.firstChild) {
+				users.removeChild(users.firstChild)
+			}
+			onlineUsers.length = 0
+		}
+		
+		websocket.onopen = function(ev) { // connection is open 
+			$('#chatframe').append("<div class=\"system_msg\">Connected!</div>"); //notify user
+			send({"join": username});
+		}
+
+		$('#send-btn').click(function(){ //use clicks message send button	
+			var mymessage = $('textarea').val(); //get message text
+			//var myname = $('#name').val(); //get user name
+			
+			if(mymessage == ""){ //emtpy message?
+				alert("Enter Some message Please!");
+				return;
+			}
+			
+			var objDiv = document.getElementById("chatframe");
+			objDiv.scrollTop = objDiv.scrollHeight;
+			//prepare json data
+			var msg = {
+			message: mymessage,
+			name: username,
+			avi : picture
+			};
+			//convert and send data to server
+			websocket.send(JSON.stringify(msg));
+		});
+		
+		//#### Message received from server?
+		// TODO: Change all these things to fit our chat service
+		websocket.onmessage = function(ev) {
+			var msg = JSON.parse(ev.data); //PHP sends Json data
+			var type = msg.type; //message type
+			var umsg = msg.message; //message text
+			var uname = msg.name; //user name
+			var upic = msg.avi; //color
+
+			if (type == 'usermsg') {
+				$('#chatframe').append('<div class="message"><img src="'+upic+'" class=" message-avatar"><div class=" message-content-nickname-wrapper"><div class="message-name">'+uname+'</div><div class="message-content">'+umsg+'</div></div></div>');
+				//$('#chatframe').append("<div><span class=\"user_name\" style=\"color:#"+ucolor+"\">"+uname+"</span> : <span class=\"user_message\">"+umsg+"</span></div>");
+			}
+			if (type == 'system') {
+				$('#chatframe').append("<div class=\"system_msg\">"+umsg+"</div>");
+			}
+
+			if (type == 'userInit') {
+				usersClear();
+				var names = umsg.split(",");
+				for (var i = 0; i < names.length - 1; i++) {
+					userAdd(names[i]);
+				}
+			}
+
+			if (type == 'userJoin') {
+				userAdd(umsg);
+			}
+
+			if (type == 'userLeft') {
+				userRemove(umsg);
+			}
+			
+			$('textarea').val(''); //reset text
+			
+			var objDiv = document.getElementById("chatframe");
+			objDiv.scrollTop = objDiv.scrollHeight;
+		};
+		
+		websocket.onerror	= function(ev){$('#chatframe').append("<div class=\"system_error\">Error Occurred - "+ev.data+"</div>");}; 
+		websocket.onclose 	= function(ev){$('#chatframe').append("<div class=\"system_msg\">Connection Closed</div>");}; 
+	});
+	function send(data) {
+		if (websocket && websocket.readyState == websocket.OPEN) {
+			websocket.send(JSON.stringify(data))
+		}
+	}
+
+
+
+	</script>
+</head>
+
+<body>
+	<div class="chatbox">
+		<div class="chatframe" id="chatframe"></div>
+		<textarea class="textbox" onkeydown = "if (event.keyCode == 13)document.getElementById('send-btn').click()"></textarea>
+		<div class="userlist"><ul id="userlist"></ul></div>
+
+	</div>
+
+	<button id="send-btn" hidden="">Send</button>
+</body>
+
+</html>
