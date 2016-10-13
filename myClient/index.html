@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>diChat</title>
+	<title>Polar Chat Room</title>
 	<style>
 
 		.message {
@@ -79,25 +79,27 @@
 			onlineUsers.push(nick)
 		}
 
-		function FindByAttributeValue(attribute, value)    {
-		  var All = document.getElementsByTagName('*');
-		  for (var i = 0; i < All.length; i++)       {
-		    if (All[i].getAttribute(attribute) == value) { return All[i]; }
-		  }
-		}
-
 		function userRemove(nick) {
 			var index = onlineUsers.indexOf(nick);
 			if (index > -1) {
 				onlineUsers.splice(index, 1);
 			}
 			if (nick) {
-				$('ul[data-name="'+nick+'"]').remove();
+				var node = document.getElementById("userlist");
+				while (node.hasChildNodes()) {
+				    node.removeChild(node.lastChild);
+				}
+				for (var i = 0; i < onlineUsers.length - 1; i++) {
+					var user = document.createElement('li');
+					user.setAttribute("data-name", nick);
+					user.textContent = onlineUsers[i];
+					$('#userlist').append(user);
+				}
 			}
 		}
 
 		function usersClear() {
-			var users = $('#userlist')
+			var users = document.getElementById("userlist")
 			while (users.firstChild) {
 				users.removeChild(users.firstChild)
 			}
@@ -144,8 +146,21 @@
 				$('#chatframe').append('<div class="message"><img src="'+upic+'" class=" message-avatar"><div class=" message-content-nickname-wrapper"><div class="message-name">'+uname+'</div><div class="message-content">'+umsg+'</div></div></div>');
 			}
 
+			// initial users online
+			if (type == "onSet") {
+				var names = umsg.split(", ");
+				for (var i = 0; i < names.length - 1; i++) {
+					userAdd(names[i]);
+				}
+			}
+
 			if (type == "join") {
 				$('#chatframe').append('<div class="message">'+uname+' has joined the chat</div>');
+				userAdd(uname);
+			}
+
+			if (type == "leave") {
+				userRemove(umsg);
 			}
 
 			if (type == "system") {
