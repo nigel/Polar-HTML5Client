@@ -84,17 +84,15 @@
 			if (index > -1) {
 				onlineUsers.splice(index, 1);
 			}
-			if (nick) {
-				var node = document.getElementById("userlist");
-				while (node.hasChildNodes()) {
-				    node.removeChild(node.lastChild);
-				}
-				for (var i = 0; i < onlineUsers.length - 1; i++) {
-					var user = document.createElement('li');
-					user.setAttribute("data-name", nick);
-					user.textContent = onlineUsers[i];
-					$('#userlist').append(user);
-				}
+			var node = document.getElementById("userlist");
+			while (node.hasChildNodes()) {
+			    node.removeChild(node.lastChild);
+			}
+			for (var i = 0; i < onlineUsers.length; i++) {
+				var user = document.createElement('li');
+				user.setAttribute("data-name", nick);
+				user.textContent = onlineUsers[i];
+				$('#userlist').append(user);
 			}
 		}
 
