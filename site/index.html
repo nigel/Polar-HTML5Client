@@ -93,12 +93,63 @@
 
     </style>
     <script>
-    function addRow() {
-      var div = document.createElement('div');
-      div.className = "message";
-      div.innerHTML = '<img src="http://iconshow.me/media/images/flag/world-cup-Flag-icons/png/256/USA.png"><b>name</b><p>' + document.getElementById("inpfield").value + '</p>';
-      document.getElementById('chat').appendChild(div);
+
+    function send(data) {
+        if (websocket && websocket.readyState == websocket.OPEN) {
+          websocket.send(JSON.stringify(data))
+        }
     }
+
+    function sendMsg() {
+      var mymessage = document.getElementById('inpfield').value; //get message text
+      //var myname = $('#name').val(); //get user name
+      
+      if(mymessage == ""){ //emtpy message?
+        alert("Enter Some message Please!");
+        return;
+      }
+      
+      //prepare json data
+      var msg = {
+      message: mymessage,
+      name: username,
+      avi : picture,
+      type: "message"
+      };
+      //convert and send data to server
+      send(msg);
+    }
+
+
+    var username = prompt("Please enter your name", "name");
+    var picture = prompt("Please enter your profile pic", "http://iconshow.me/media/images/flag/world-cup-Flag-icons/png/256/USA.png");
+    //create a new WebSocket object.
+    var wsUri = "ws://localhost:1337/";   
+    websocket = new WebSocket(wsUri);
+
+    websocket.onopen = function(ev) { // connection is open 
+      send({"type": "join", name: username, avi: picture, message: "Joined"});
+    }
+
+    websocket.onmessage = function(ev) {
+      var msg = JSON.parse(ev.data); //PHP sends Json data
+      var type = msg.type; //message type
+      var umsg = msg.message; //message text
+      var uname = msg.name; //user name
+      var upic = msg.avi; //color
+      if (type == "message") {
+        var div = document.createElement('div');
+        div.className = "message";
+        div.innerHTML = '<img src="'+decodeURIComponent(upic)+'"><b>'+ decodeURIComponent(uname) +'</b><p>' + decodeURIComponent(umsg) + '</p>';
+        document.getElementById('chat').appendChild(div);
+      }
+      // initial users online
+     
+
+    };
+    
+
+
     </script>
   </head>
   <body>
@@ -114,8 +165,8 @@
     <script>
     document.getElementById("inpfield").addEventListener("keydown", function(e) {
     if (e.keyCode == 13) { 
-
-      addRow(); document.getElementById('inpfield').value = "";}
+      sendMsg();
+      document.getElementById('inpfield').value = "";}
     }, false);
     </script>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
