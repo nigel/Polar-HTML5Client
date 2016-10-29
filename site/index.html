@@ -168,10 +168,33 @@
       var umsg = msg.message; //message text
       var uname = msg.name; //user name
       var upic = msg.avi; //color
-      if (type == "onSet") {
-        console.log(JSON.parse(ev.data));
+      if (type == "join") {
+        var div = document.createElement("p");
+        div.innerText = decodeURIComponent(uname);
+
+        document.getElementsByClassName('users')[0].appendChild(div);
       }
-      if (type == "message") {
+      else if (type=="leave") {
+
+        var list = document.getElementsByClassName('users')[0].getElementsByTagName('p');
+
+        for(var i=0;i<list.length;i++) {
+          if (list[i].innerText == decodeURIComponent(umsg)) {
+            list[i].remove();
+            break;
+          }
+        }
+      }
+
+      else if (type == "onSet") {
+        for(var i=0;i<umsg.split(",").length;i++) {
+          var div = document.createElement("p");
+          div.innerText = decodeURIComponent(umsg.split(",")[i]);
+
+          document.getElementsByClassName('users')[0].appendChild(div);
+        }
+      }
+      else if (type == "message") {
         var div = document.createElement('div');
         div.className = "message";
         var img = document.createElement('img');
