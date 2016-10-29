@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PolarChat</title>
     <!-- Bootstrap -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -19,26 +19,14 @@
       background-color:black;
       float:left;
     }
-    .main {
-      padding-top: 50px;
-      padding-left:25%;
-      padding-right:100px;
 
-      background-color:white;
-    }
 
-    .sendbox {
-      bottom: 0;
-      position:fixed;
-      width:75%;
-      
-    }
+
     .users {
       background-color:blue;
       float:right;
       text-align:left;
-      padding-right:100px;
-      padding-left:100px;
+
     }
     .ghost-input {
       display: block;
@@ -65,13 +53,40 @@
     .ghost-input:focus {
       border-bottom:1px solid #ddd;
     }
+    .users {
+
+      width:20%;
+      align:right;
+      float:right;
+      text-align:left;
+      height:75vh;
+      max-height:75vh;
+      min-width:20%;
+      background-color:#F8F8F8;
+    }
     .chat {
-      width:75%;
-      height:75%;
-      position:fixed;
-      margin-bottom: 43px;
-      padding-bottom:32px;
+      margin:auto;
+      min-width:80%;
+      width:80%;
+      float:left;
+      height:75vh;
+      max-height:75vh;
       overflow:scroll;
+    } .sendbox {
+      padding-top:75.2vh;
+
+      width:50%;
+    }
+    .main {
+      width:auto;
+    }
+    .medillin {
+      padding-top:2%;
+      padding-bottom:2%;
+      background-color:white;
+      width:70%;
+      margin:auto;
+      height:auto;
     }
     .message b{
       padding-left: 10px;
@@ -88,12 +103,30 @@
     }
     .ghost-input {
       float:bottom;
-      
-    }
 
+    } .descript {
+      display:inline-block;
+    }
+    .users b {
+
+      padding-left:7%;
+    }
+    .users p {
+      padding-left:14%;
+    }
+    description {
+      color:	#B8B8B8 ;
+      font-size: 60%;
+    }
     </style>
     <script>
-
+    function addRow() {
+          var div = document.createElement('div');
+          div.className = "message";
+          div.innerHTML = '<img src="http://iconshow.me/media/images/flag/world-cup-Flag-icons/png/256/USA.png"><b>name</b><p>' + document.getElementById("inpfield").value + '</p>';
+          document.getElementById('chat').appendChild(div);
+          document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+       }
     function send(data) {
         if (websocket && websocket.readyState == websocket.OPEN) {
           websocket.send(JSON.stringify(data))
@@ -103,12 +136,12 @@
     function sendMsg() {
       var mymessage = document.getElementById('inpfield').value; //get message text
       //var myname = $('#name').val(); //get user name
-      
+
       if(mymessage == ""){ //emtpy message?
         alert("Enter Some message Please!");
         return;
       }
-      
+
       //prepare json data
       var msg = {
       message: mymessage,
@@ -120,14 +153,12 @@
       send(msg);
     }
 
-
     var username = prompt("Please enter your name", "name");
     var picture = prompt("Please enter your profile pic", "http://iconshow.me/media/images/flag/world-cup-Flag-icons/png/256/USA.png");
     //create a new WebSocket object.
-    var wsUri = "ws://localhost:1337/";   
+    var wsUri = "ws://localhost:1337/";
     websocket = new WebSocket(wsUri);
-
-    websocket.onopen = function(ev) { // connection is open 
+    websocket.onopen = function(ev) { // connection is open
       send({"type": "join", name: username, avi: picture, message: "Joined"});
     }
 
@@ -137,41 +168,67 @@
       var umsg = msg.message; //message text
       var uname = msg.name; //user name
       var upic = msg.avi; //color
+      if (type == "onSet") {
+        console.log(JSON.parse(ev.data));
+      }
       if (type == "message") {
         var div = document.createElement('div');
         div.className = "message";
-        div.innerHTML = '<img src="'+decodeURIComponent(upic)+'"><b>'+ decodeURIComponent(uname) +'</b><p>' + decodeURIComponent(umsg) + '</p>';
+        var img = document.createElement('img');
+        img.setAttribute("src", decodeURIComponent(upic));
+
+        var name = document.createElement('b');
+        name.innerText = decodeURIComponent(uname);
+
+        var message = document.createElement('p');
+        message.innerText = decodeURIComponent(umsg);
+        div.appendChild(img);
+        div.appendChild(name);
+        div.appendChild(message);
+
+
+
         document.getElementById('chat').appendChild(div);
+        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
       }
       // initial users online
-     
+
 
     };
-    
+
 
 
     </script>
   </head>
   <body>
     <div class="main">
-      <h1>/c/chat</h1>
+
+      <div class="medillin">
+        <h1>/c/<b>chat</b>  <description>the testing chat for PolarChat services</description></h1>
       <div class="chat" id="chat">
       </div>
-      <div class="sendbox">
-        <input type="text" id="inpfield" class="ghost-input" placeholder="type here" required> 
+      <div class="users">
+          <b>Users online:</b>
+
       </div>
+
+      <div class="sendbox">
+        <input type="text" id="inpfield" class="ghost-input" placeholder="type here" required>
+      </div>
+    </div>
     </div>
 
     <script>
     document.getElementById("inpfield").addEventListener("keydown", function(e) {
-    if (e.keyCode == 13) { 
+    if (e.keyCode == 13) {
       sendMsg();
+      //addRow();
       document.getElementById('inpfield').value = "";}
     }, false);
     </script>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/bootstrap.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
   </body>
 </html>
