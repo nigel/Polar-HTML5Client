@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PolarChat</title>
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+    .widget {
+      background-color:black;
+      float:left;
+    }
+
+
+
+    .users {
+      background-color:blue;
+      float:right;
+      text-align:left;
+
+    }
+    .ghost-input {
+      display: block;
+      font-weight:300;
+      width: 100%;
+      font-size: 15px;
+      border:0px;
+      outline: none;
+      width: 100%;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      color: #4b545f;
+      background: #fff;
+      font-family: Open Sans,Verdana;
+      padding-bottom:10px;
+      margin: 30px 0px;
+      -webkit-transition: all 0.1s ease-in-out;
+      -moz-transition: all 0.1s ease-in-out;
+      -ms-transition: all 0.1s ease-in-out;
+      -o-transition: all 0.1s ease-in-out;
+      transition: all 0.1s ease-in-out;
+    }
+    .ghost-input:focus {
+      border-bottom:1px solid #ddd;
+    }
+    .users {
+
+      width:20%;
+      align:right;
+      float:right;
+      text-align:left;
+      height:75vh;
+      max-height:75vh;
+      min-width:20%;
+      background-color:#F8F8F8;
+    }
+    .chat {
+      margin:auto;
+      min-width:80%;
+      width:80%;
+      float:left;
+      height:75vh;
+      max-height:75vh;
+      overflow:scroll;
+    } .sendbox {
+      padding-top:75.2vh;
+
+      width:50%;
+    }
+    .main {
+      width:auto;
+    }
+    .medillin {
+      padding-top:2%;
+      padding-bottom:2%;
+      background-color:white;
+      width:70%;
+      margin:auto;
+      height:auto;
+    }
+    .message b{
+      padding-left: 10px;
+      float:top;
+    }
+    .message img {
+      float:left;
+      width:32px;
+      height:auto;
+    }
+    .message p {
+      float:bottom;
+      padding-left:42px;
+    }
+    .ghost-input {
+      float:bottom;
+
+    } .descript {
+      display:inline-block;
+    }
+    .users b {
+
+      padding-left:7%;
+    }
+    .users p {
+      padding-left:14%;
+    }
+    description {
+      color:	#B8B8B8 ;
+      font-size: 60%;
+    }
+    </style>
+    <script>
+    function addRow() {
+          var div = document.createElement('div');
+          div.className = "message";
+          div.innerHTML = '<img src="http://iconshow.me/media/images/flag/world-cup-Flag-icons/png/256/USA.png"><b>name</b><p>' + document.getElementById("inpfield").value + '</p>';
+          document.getElementById('chat').appendChild(div);
+          document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+       }
+    function send(data) {
+        if (websocket && websocket.readyState == websocket.OPEN) {
+          websocket.send(JSON.stringify(data))
+        }
+    }
+
+    function sendMsg() {
+      var mymessage = document.getElementById('inpfield').value; //get message text
+      //var myname = $('#name').val(); //get user name
+
+      if(mymessage == ""){ //emtpy message?
+        alert("Enter Some message Please!");
+        return;
+      }
+
+      //prepare json data
+      var msg = {
+      message: mymessage,
+      name: username,
+      avi : picture,
+      type: "message"
+      };
+      //convert and send data to server
+      send(msg);
+    }
+
+    var username = prompt("Please enter your name", "name");
+    var picture = prompt("Please enter your profile pic", "http://iconshow.me/media/images/flag/world-cup-Flag-icons/png/256/USA.png");
+    //create a new WebSocket object.
+    var wsUri = "ws://localhost:1337/";
+    websocket = new WebSocket(wsUri);
+    websocket.onopen = function(ev) { // connection is open
+      send({"type": "join", name: username, avi: picture, message: "Joined"});
+    }
+
+    websocket.onmessage = function(ev) {
+      var msg = JSON.parse(ev.data); //PHP sends Json data
+      var type = msg.type; //message type
+      var umsg = msg.message; //message text
+      var uname = msg.name; //user name
+      var upic = msg.avi; //color
+      if (type == "join") {
+        var div = document.createElement("p");
+        div.innerText = decodeURIComponent(uname);
+
+        document.getElementsByClassName('users')[0].appendChild(div);
+      }
+      else if (type=="leave") {
+
+        var list = document.getElementsByClassName('users')[0].getElementsByTagName('p');
+
+        for(var i=0;i<list.length;i++) {
+          if (list[i].innerText == decodeURIComponent(umsg)) {
+            list[i].remove();
+            break;
+          }
+        }
+      }
+
+      else if (type == "onSet") {
+        for(var i=0;i<umsg.split(",").length;i++) {
+          var div = document.createElement("p");
+          div.innerText = decodeURIComponent(umsg.split(",")[i]);
+
+          document.getElementsByClassName('users')[0].appendChild(div);
+        }
+      }
+      else if (type == "message") {
+        var div = document.createElement('div');
+        div.className = "message";
+        var img = document.createElement('img');
+        img.setAttribute("src", decodeURIComponent(upic));
+
+        var name = document.createElement('b');
+        name.innerText = decodeURIComponent(uname);
+
+        var message = document.createElement('p');
+        message.innerText = decodeURIComponent(umsg);
+        div.appendChild(img);
+        div.appendChild(name);
+        div.appendChild(message);
+
+
+
+        document.getElementById('chat').appendChild(div);
+        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+      }
+      // initial users online
+
+
+    };
+
+
+
+    </script>
+  </head>
+  <body>
+    <div class="main">
+
+      <div class="medillin">
+        <h1>/c/<b>chat</b>  <description>the testing chat for PolarChat services</description></h1>
+      <div class="chat" id="chat">
+      </div>
+      <div class="users">
+          <b>Users online:</b>
+
+      </div>
+
+      <div class="sendbox">
+        <input type="text" id="inpfield" class="ghost-input" placeholder="type here" required>
+      </div>
+    </div>
+    </div>
+
+    <script>
+    document.getElementById("inpfield").addEventListener("keydown", function(e) {
+    if (e.keyCode == 13) {
+      sendMsg();
+      //addRow();
+      document.getElementById('inpfield').value = "";}
+    }, false);
+    </script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>
